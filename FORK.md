@@ -29,9 +29,9 @@ Copyeditor's invalid-block and native-identity guards are unchanged.
 
 Select one or more legacy accordion blocks and choose **Accordion** in the block
 transform menu. The action only appears when the core Accordion family is
-registered (normally WordPress 6.9+, or a compatible Gutenberg plugin). Confirm
-the warning to convert; Cancel leaves the selection unchanged. Invalid selected
-blocks must be recovered first.
+registered (normally WordPress 6.9+, or a compatible Gutenberg plugin). Selecting
+the transform converts directly, without a confirmation dialog. Hover previews
+do not modify the original selection. Invalid selected blocks must be recovered first.
 
 Rich and empty headings, heading levels, initially-open state, authored child
 order and nested content are retained. Descendants inside ordinary containers are
@@ -42,7 +42,7 @@ legacy JavaScript activation classes. Generated `at-<uuid>` heading anchors and
 `ac-<uuid>` panel anchors are retained; a native Group inside each panel supplies
 the latter because core panels do not support anchors.
 
-The confirmation explains differences that need editorial/frontend checking:
+Conversion differences that need editorial/frontend checking:
 
 - Scroll/scroll-offset and prevent-click-to-close behavior do not carry over.
 - Core auto-close is scoped to each converted group, rather than the legacy
@@ -59,7 +59,7 @@ API-v3 iframe migration or database rollback is included.
 ## Build and install candidate
 
 Use Node 24 and Python 3: `npm ci`, `npm test`, then `npm run package`. The ZIP is written to
-`dist/accordion-blocks-1.5.1-lebtown.1.zip` and contains runtime assets, not Node
+`dist/accordion-blocks-1.5.1-lebtown.2.zip` and contains runtime assets, not Node
 packages or tests. The PHP header requires WordPress 6.6 because the new build
 uses the registered React JSX runtime. Core conversion still requires the core
 Accordion blocks. The fork disables WordPress.org replacement updates with
@@ -74,7 +74,7 @@ Do not run `npm audit fix --force` as a substitute for compatibility testing.
 
 Automated tests exercise actual WordPress block parsing, the production legacy
 serializer/deprecations, the registered core block serializers, and the public
-single/multiple/cancelled transformation API. Defaults lifecycle tests mock editor
+single/multiple transformation API and dialog-free previews. Defaults lifecycle tests mock editor
 selectors/UI; identity tests mount competing editors against real WordPress data
 registries. Core heading editor tests verify mixed heading levels after conversion.
 All 20 tests pass, along with the production build, ZIP packaging, and PHP 8.3

@@ -4,7 +4,7 @@ Author URI: https://philbuchanan.com/
 Donate Link: https://philbuchanan.com/donate/
 Tags: accordion, accordions, gutenberg, block, responsive
 Requires at least: 6.6
-Stable tag: 1.5.1-lebtown.1
+Stable tag: 1.5.1-lebtown.2
 Requires PHP: 7.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -13,7 +13,7 @@ Gutenberg block for creating responsive accordion drop-downs.
 
 == Description ==
 
-LebTown compatibility fork. Existing legacy blocks remain supported; conversion to core Accordion is an explicit editor action with a warning. See FORK.md for scope, migration differences and staging verification. Upstream WordPress.org updates are disabled for this fork.
+LebTown compatibility fork. Existing legacy blocks remain supported; conversion to core Accordion is an explicit editor action. See FORK.md for scope, migration differences and staging verification. Upstream WordPress.org updates are disabled for this fork.
 
 Accordion Blocks is a simple plugin that adds a Gutenberg block for adding accordion drop-downs to your pages.
 
