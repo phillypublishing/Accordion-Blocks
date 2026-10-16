@@ -1,5 +1,4 @@
 import { createBlock, getBlockType } from '@wordpress/blocks';
-import { __ } from '@wordpress/i18n';
 
 const requiredBlocks = ['core/accordion', 'core/accordion-item', 'core/accordion-heading', 'core/accordion-panel', 'core/group'];
 const available = () => requiredBlocks.every(name => getBlockType(name));
@@ -65,8 +64,6 @@ export const coreTransform = {
 	isMatch: (_attributes, blocks) => available() && (!blocks || blocks.every(block => block.isValid !== false)),
 	transform: (attributes, innerBlocks) => {
 		if (!available()) return null;
-		const warning = __('Convert the selected accordions to WordPress core Accordion?\n\nTitles and body content will be kept. Scroll offsets and prevent-click-to-close settings will not carry over. Auto-close will apply within each converted group, not across the page. Styling, deep-link opening, and existing comment associations need checking afterward. Save a revision first; do not convert during an active review.\n\nCancel keeps the legacy blocks unchanged.', 'accordion-blocks');
-		if (!window.confirm(warning)) return null;
 		return convertLegacyBlocks(attributes.map((item, index) => ({
 			name: 'pb/accordion-item', attributes: item, innerBlocks: innerBlocks[index],
 		})));

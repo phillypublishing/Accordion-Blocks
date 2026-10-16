@@ -56,14 +56,17 @@ test('invalid descendants refuse conversion instead of discarding content', () =
  assert.equal(String(broken.attributes.content), 'must not disappear');
 });
 
-test('confirmation can cancel without replacing blocks; accepted conversion preserves empty title', () => {
- const input = legacy({title:''}); let prompt;
- const old = window.confirm; window.confirm = message => { prompt = message; return false; };
+test('conversion previews never prompt or mutate the selection and preserve empty titles', () => {
+ const input = legacy({title:''});
+ const before = JSON.stringify(input);
+ const old = window.confirm;
+ window.confirm = () => { throw new Error('Transform previews must not open dialogs'); };
  try {
-  assert.equal(coreTransform.transform([input.attributes], [input.innerBlocks]), null);
-  assert.match(prompt, /scroll/i); assert.match(prompt, /close/i); assert.match(prompt, /styling/i);
-  window.confirm = () => true;
-  assert.equal(String(coreTransform.transform([input.attributes], [input.innerBlocks])[0].innerBlocks[0].innerBlocks[0].attributes.title), '');
+  for (let i = 0; i < 2; i++) {
+   const result = wp.switchToBlockType(input, 'core/accordion');
+   assert.equal(String(result[0].innerBlocks[0].innerBlocks[0].attributes.title), '');
+   assert.equal(JSON.stringify(input), before);
+  }
  } finally { window.confirm = old; }
 });
 
@@ -73,26 +76,17 @@ test('conversion is unavailable when native core accordion blocks are absent', (
  finally { wp.registerBlockType('core/accordion', definition); }
 });
 
- test('WordPress transformation API handles single, multiple and cancelled selections', () => {
- const old = window.confirm;
- try {
-  window.confirm = () => true;
-  const single = wp.switchToBlockType(legacy({}, [paragraph('kept')]), 'core/accordion');
-  assert.equal(single[0].name, 'core/accordion');
-  assert.equal(String(body(single[0])[0].attributes.content), 'kept');
-  const multi = wp.switchToBlockType([legacy({uuid:8}), legacy({uuid:9})], 'core/accordion');
-  assert.equal(multi[0].innerBlocks.length, 2);
-  window.confirm = () => false;
-  assert.equal(wp.switchToBlockType(legacy(), 'core/accordion'), null);
- } finally { window.confirm = old; }
+test('WordPress transformation API handles single and multiple selections', () => {
+ const single = wp.switchToBlockType(legacy({}, [paragraph('kept')]), 'core/accordion');
+ assert.equal(single[0].name, 'core/accordion');
+ assert.equal(String(body(single[0])[0].attributes.content), 'kept');
+ const multi = wp.switchToBlockType([legacy({uuid:8}), legacy({uuid:9})], 'core/accordion');
+ assert.equal(multi[0].innerBlocks.length, 2);
 });
 
-test('WordPress refuses an invalid selected legacy root before asking to convert', () => {
+test('WordPress refuses an invalid selected legacy root', () => {
  const input = legacy(); input.isValid = false;
- const old = window.confirm; let asked = false;
- window.confirm = () => { asked = true; return true; };
- try { assert.equal(wp.switchToBlockType(input, 'core/accordion'), null); assert.equal(asked, false); }
- finally { window.confirm = old; }
+ assert.equal(wp.switchToBlockType(input, 'core/accordion'), null);
 });
 
 test('mixed legacy heading levels retain their actual core editor heading tags', () => {
