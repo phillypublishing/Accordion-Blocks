@@ -2,6 +2,7 @@
  * WordPress dependencies
  */
 import { createBlock } from '@wordpress/blocks';
+import { coreTransform } from './core-transforms';
 
 export default {
 	from: [
@@ -29,6 +30,7 @@ export default {
 		},
 	],
 	to: [
+		coreTransform,
 		{
 			type: 'block',
 			blocks: ['core/paragraph'],

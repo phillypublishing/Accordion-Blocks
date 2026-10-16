@@ -2,9 +2,9 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { Fragment, useEffect, useState } from '@wordpress/element';
+import { Fragment, useEffect, useRef } from '@wordpress/element';
 import { useInstanceId } from '@wordpress/compose';
-import { useSelect, dispatch } from '@wordpress/data';
+import { useSelect, useRegistry, dispatch } from '@wordpress/data';
 import {
 	BlockControls,
 	InspectorControls,
@@ -29,6 +29,8 @@ import { useEntityProp } from '@wordpress/core-data';
  */
 import HtmlTagIcon from './html-tag-icon';
 import classnames from '../utils/classnames';
+import { getNewItemDefaults } from '../utils/defaults';
+import { claimItemId } from '../utils/identity';
 
 const AccordionItemEdit = ({
 	className,
@@ -49,7 +51,8 @@ const AccordionItemEdit = ({
 	} = attributes;
 
 	// An accordion item is considered new if it doesn't have a UUID yet
-	const [isNew, setIsNew] = useState(!uuid);
+	const initialAttributes = useRef(attributes);
+	const defaultsApplied = useRef(uuid !== undefined);
 
 	const isParentOfSelectedBlock = useSelect((select) => {
 		return select('core/block-editor').hasSelectedInnerBlock(clientId, true);
@@ -61,36 +64,34 @@ const AccordionItemEdit = ({
 		return block ? block.name === 'pb/accordion-item' : false;
 	});
 
-	/**
-	 * UUID is generated as a combination of the post ID and this block's
-	 * instance ID.
-	 *
-	 * This ensures the UUID is unique not just in this post, but across all
-	 * posts. This is necessary since accordions from multiple posts may be
-	 * displayed on the same page (e.g. an archive page that shows the full post
-	 * content). See issue #31.
-	 *
-	 * We use instanceId so a new UUID is generated even if the accordion item
-	 * is duplicated. See issue #47.
-	 *
-	 * TODO: The one downside to this approach is that sometimes accordion
-	 * items' UUIDs change when the editor is reloaded. For example, if the user
-	 * removes a block and saves the page, when the editor loads again, it will
-	 * assign new instanceIds to each block.
-	 */
+	const registry = useRegistry();
 	const instanceId = useInstanceId(AccordionItemEdit);
 	const entityId = useSelect((select) => {
 		return select('core/editor') !== null
 			? select('core/editor').getCurrentPostId() : 0;
 	});
+	const itemIds = useSelect((select) => {
+		const editor = select('core/block-editor');
+		return editor.getClientIdsWithDescendants()
+			.filter((id) => editor.getBlockName(id) === 'pb/accordion-item')
+			.map((id) => ({
+				clientId: id,
+				uuid: editor.getBlockAttributes(id)?.uuid,
+			}));
+	}, []);
 
 	useEffect(() => {
-		const id = Number(`${ entityId }${ instanceId }`);
-
+		// Read the latest store snapshot: another item's effect may just have
+		// assigned an ID since this render. Claims also reserve pending writes.
+		const editor = registry.select('core/block-editor');
+		const currentItems = editor.getClientIdsWithDescendants()
+			.filter((id) => editor.getBlockName(id) === 'pb/accordion-item')
+			.map((id) => ({ clientId: id, uuid: editor.getBlockAttributes(id)?.uuid }));
+		const id = claimItemId(registry, entityId, currentItems, clientId, uuid, Number(`${ entityId }${ instanceId }`));
 		if (id !== uuid) {
-			setAttributes({uuid: id});
+			setAttributes({ uuid: id });
 		}
-	}, [instanceId]);
+	}, [uuid, clientId, entityId, instanceId, itemIds, registry]);
 
 	const isNestedAccordion = useSelect((select) => {
 		const parentBlocks = select('core/block-editor').getBlockParentsByBlockName(clientId, 'pb/accordion-item');
@@ -111,6 +112,10 @@ const AccordionItemEdit = ({
 		return select('accordion-blocks').getDefaultSettings();
 	});
 
+	const defaultsResolved = useSelect((select) => {
+		return select('accordion-blocks').hasFinishedResolution('getDefaultSettings');
+	});
+
 	const settingsAreDefaults =
 		!(defaults === undefined || defaults === null) &&
 		initiallyOpen === defaults.initiallyOpen &&
@@ -120,20 +125,15 @@ const AccordionItemEdit = ({
 		scrollOffset === defaults.scrollOffset;
 
 	useEffect(() => {
-		/**
-		 * We only set this accordion item's attributes to defaults if it is new
-		 * and its attributes aren't already the defaults.
-		 */
-		if (isNew && !settingsAreDefaults) {
-			setAttributes({
-				initiallyOpen: defaults.initiallyOpen,
-				clickToClose: defaults.clickToClose,
-				autoClose: defaults.autoClose,
-				scroll: defaults.scroll,
-				scrollOffset: defaults.scrollOffset,
-			});
+		if (defaultsApplied.current || !defaultsResolved) {
+			return;
 		}
-	}, [defaults]);
+		defaultsApplied.current = true;
+		const settings = getNewItemDefaults(initialAttributes.current, attributes, defaults);
+		if (settings) {
+			setAttributes(settings);
+		}
+	}, [defaults, defaultsResolved, attributes]);
 
 	const blockProps = useBlockProps({
 		className: classnames(

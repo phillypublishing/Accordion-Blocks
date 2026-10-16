@@ -1,15 +1,15 @@
 <?php
 
 /**
- * Plugin Name: Accordion Blocks
+ * Plugin Name: Accordion Blocks (LebTown)
  * Plugin URI: https://github.com/philbuchanan/Accordion-Blocks
  * Description: Gutenberg blocks for creating responsive accordion drop-downs.
- * Version: 1.5.0
- * Requires at least: 5.9
- * Tested up to: 5.9
+ * Version: 1.5.1-lebtown.1
+ * Requires at least: 6.6
  * Requires PHP: 7.3
  * Author: Phil Buchanan
  * Author URI: https://philbuchanan.com
+ * Update URI: false
  * License: GPLv2 or later
  */
 
