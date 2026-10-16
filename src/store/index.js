@@ -3,15 +3,10 @@
  */
 import { createReduxStore, register } from '@wordpress/data';
 import apiFetch from '@wordpress/api-fetch';
+import { DEFAULT_SETTINGS, normalizeDefaults } from '../utils/defaults';
 
 const initialState = {
-	defaults: {
-		initiallyOpen: false,
-		clickToClose: true,
-		autoClose: true,
-		scroll: false,
-		scrollOffset: 0,
-	},
+	defaults: DEFAULT_SETTINGS,
 };
 
 const actions = {
@@ -40,19 +35,19 @@ const store = createReduxStore('accordion-blocks', {
 		switch (action.type) {
 			case 'SET_DEFAULTS':
 				return Object.assign({}, state, {
-					defaults: action.defaults
+					defaults: normalizeDefaults(action.defaults)
 				});
 			case 'SAVE_DEFAULTS':
 				apiFetch({
 					path: 'accordion-blocks/v1/defaults',
-					data: action.defaults,
+					data: normalizeDefaults(action.defaults),
 					method: 'POST',
 				})
 				.then((response) => {})
 				.catch((error) => {});
 
 				return Object.assign({}, state, {
-					defaults: action.defaults
+					defaults: normalizeDefaults(action.defaults)
 				});
 			default:
 				return state;

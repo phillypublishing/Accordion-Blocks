@@ -1,9 +1,99 @@
 /**
  * WordPress dependencies
  */
-import { InnerBlocks, RichText } from '@wordpress/block-editor';
+import { InnerBlocks, RichText, useBlockProps, useInnerBlocksProps } from '@wordpress/block-editor';
 
 const deprecated = [
+	// Compatibility snapshot: current structure with all five wrapper settings absent.
+	// Validation still compares the complete title, IDs, classes and inner content.
+	{
+		attributes: {
+			title: {
+				type: 'string',
+				source: 'html',
+				selector: '.c-accordion__title',
+			},
+			initiallyOpen: {
+				type: 'boolean',
+				default: false,
+			},
+			clickToClose: {
+				type: 'boolean',
+				default: true,
+			},
+			autoClose: {
+				type: 'boolean',
+				default: true,
+			},
+			titleTag: {
+				type: 'string',
+				default: 'h2',
+			},
+			scroll: {
+				type: 'boolean',
+				default: false,
+			},
+			scrollOffset: {
+				type: 'number',
+				default: 0,
+			},
+			uuid: {
+				type: 'number',
+			},
+		},
+		supports: { anchor: true },
+		migrate: (attributes, innerBlocks) => [attributes, innerBlocks],
+		save: ({ attributes }) => {
+			const {
+				className,
+				title,
+				initiallyOpen,
+				titleTag,
+				uuid,
+			} = attributes;
+
+			let itemClasses = [
+				'c-accordion__item',
+				'js-accordion-item',
+				'no-js',
+			];
+
+			let titleClasses = [
+				'c-accordion__title',
+				'js-accordion-controller',
+			];
+
+			if (titleTag === 'button') {
+				titleClasses.push('c-accordion__title--button');
+			}
+
+			if (initiallyOpen) {
+				itemClasses.push('is-open');
+			}
+
+			const blockProps = useBlockProps.save({
+				className: [...itemClasses, className].join(' '),
+			});
+
+			const innerBlocksProps = useInnerBlocksProps.save({
+				id: 'ac-' + uuid,
+				className: 'c-accordion__content',
+			});
+
+			return (
+				<div { ...blockProps }>
+					<RichText.Content
+						id={ 'at-' + uuid }
+						className={ titleClasses.join(' ') }
+						tagName={ titleTag }
+						role="button"
+						value={ title }
+					/>
+					<div { ...innerBlocksProps } />
+				</div>
+			);
+		},
+	},
 	{
 		attributes: {
 			title: {

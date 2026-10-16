@@ -1,15 +1,23 @@
 {
   "name": "accordion-blocks",
-  "version": "1.4.1",
+  "version": "1.5.1-lebtown.1",
   "description": "Gutenberg blocks for creating responsive accordion drop-downs.",
   "main": "src/index.js",
   "scripts": {
     "start": "wp-scripts start",
-    "build": "wp-scripts build"
+    "build": "wp-scripts build",
+    "test": "node --test tests/*.test.cjs",
+    "package": "npm run build && node scripts/package.mjs"
   },
   "author": "pbuchanan",
-  "license": "ISC",
+  "license": "GPL-2.0-or-later",
   "devDependencies": {
-    "@wordpress/scripts": "19.0.0"
+    "@wordpress/scripts": "36.1.0",
+    "@wordpress/block-library": "11.2.0",
+    "@wordpress/blocks": "16.2.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "esbuild": "0.27.7",
+    "jsdom": "26.1.0"
   }
 }
