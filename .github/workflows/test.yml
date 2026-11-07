@@ -21,3 +21,5 @@ jobs:
         with:
           name: accordion-blocks-staging
           path: dist/*.zip
+          # Staging install ZIP; the 90-day default outlived any use of it.
+          retention-days: 14
